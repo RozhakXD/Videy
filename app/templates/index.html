@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Videy - Download Videos from Videy.co</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+        <style>
+            :root {
+                --primary: #6c5ce7;
+                --secondary: #a29bfe;
+                --dark: #2d3436;
+                --light: #f5f6fa;
+                --accent: #fd79a8;
+                --success: #00b894;
+                --header-bg: #ffffff;
+                --footer-bg: #f8f9fa;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: "Poppins", sans-serif;
+            }
+
+            body {
+                background-color: var(--light);
+                color: var(--dark);
+                min-height: 100vh;
+            }
+
+            header {
+                background-color: var(--header-bg);
+                box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                width: 100%;
+            }
+
+            .header-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 1rem 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: var(--primary);
+                display: flex;
+                align-items: center;
+                text-decoration: none;
+            }
+
+            .logo i {
+                margin-right: 0.5rem;
+                transition: transform 0.3s ease;
+            }
+
+            .logo:hover i {
+                transform: rotate(15deg);
+            }
+
+            nav {
+                display: flex;
+                align-items: center;
+            }
+
+            .nav-links {
+                display: flex;
+                list-style: none;
+            }
+
+            .nav-links li {
+                margin-left: 1.8rem;
+            }
+
+            .nav-links a {
+                color: var(--dark);
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.3s ease;
+                padding: 0.5rem 0;
+            }
+
+            .nav-links a:hover {
+                color: var(--primary);
+            }
+
+            .mobile-menu-btn {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--dark);
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            .hero {
+                text-align: center;
+                margin: 3rem 0 4rem;
+                padding: 0 1rem;
+            }
+
+            .hero h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, var(--primary), var(--accent));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                line-height: 1.2;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+                color: #666;
+                max-width: 700px;
+                margin: 0 auto 2rem;
+                line-height: 1.6;
+            }
+
+            .converter-card {
+                background: white;
+                border-radius: 20px;
+                padding: 2.5rem;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+                margin-bottom: 3rem;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .converter-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12), 0 5px 10px rgba(0, 0, 0, 0.06);
+            }
+
+            .input-group {
+                display: flex;
+                margin-bottom: 1.5rem;
+            }
+
+            .input-group input {
+                flex: 1;
+                padding: 1rem 1.5rem;
+                border: 2px solid #ddd;
+                border-radius: 10px 0 0 10px;
+                font-size: 1rem;
+                outline: none;
+                transition: border-color 0.3s ease;
+            }
+
+            .input-group input:focus {
+                border-color: var(--primary);
+            }
+
+            .input-group button {
+                padding: 0 2.5rem;
+                background: linear-gradient(45deg, var(--primary), var(--secondary));
+                color: white;
+                border: none;
+                border-radius: 0 10px 10px 0;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.3s ease;
+                font-size: 1rem;
+            }
+
+            .input-group button:hover {
+                background: linear-gradient(45deg, var(--secondary), var(--primary));
+            }
+
+            .result-container {
+                display: none;
+                animation: fadeIn 0.5s ease;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .video-preview {
+                width: 100%;
+                border-radius: 15px;
+                overflow: hidden;
+                margin-bottom: 2rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                background: #f8f9fa;
+                aspect-ratio: 16/9;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+            .video-preview video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .video-preview .play-btn {
+                position: absolute;
+                width: 70px;
+                height: 70px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 2;
+                transition: transform 0.3s ease;
+            }
+
+            .video-preview .play-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .video-preview .play-btn i {
+                color: var(--primary);
+                font-size: 1.5rem;
+                margin-left: 5px;
+            }
+
+            .download-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .download-option {
+                background: white;
+                border-radius: 12px;
+                padding: 1.5rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+                transition: transform 0.3s ease;
+                border: 1px solid #eee;
+            }
+
+            .download-option:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .download-option h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+                color: var(--dark);
+            }
+
+            .download-option p {
+                color: #666;
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+                line-height: 1.5;
+            }
+
+            .download-btn {
+                display: inline-block;
+                padding: 0.6rem 1.8rem;
+                background: linear-gradient(45deg, var(--success), #55efc4);
+                color: white;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: 500;
+                transition: transform 0.3s ease;
+                font-size: 0.95rem;
+                border: none;
+                cursor: pointer;
+            }
+
+            .download-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .features {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 2rem;
+                margin: 5rem 0;
+            }
+
+            .feature-card {
+                background: white;
+                border-radius: 15px;
+                padding: 2rem;
+                text-align: center;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+                transition: transform 0.3s ease;
+            }
+
+            .feature-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            .feature-icon {
+                width: 70px;
+                height: 70px;
+                background: linear-gradient(45deg, var(--primary), var(--secondary));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1.5rem;
+                color: white;
+                font-size: 1.5rem;
+            }
+
+            .feature-card h3 {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+                color: var(--dark);
+            }
+
+            .feature-card p {
+                color: #666;
+                font-size: 0.95rem;
+                line-height: 1.6;
+            }
+
+            footer {
+                text-align: center;
+                padding: 3rem 0;
+                color: #666;
+                font-size: 0.9rem;
+                background-color: var(--footer-bg);
+                margin-top: 4rem;
+            }
+
+            .footer-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 2rem;
+            }
+
+            .loading {
+                display: none;
+                text-align: center;
+                margin: 2rem 0;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid rgba(108, 92, 231, 0.2);
+                border-radius: 50%;
+                border-top-color: var(--primary);
+                animation: spin 1s linear infinite;
+                margin: 0 auto 1rem;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .header-container {
+                    padding: 1rem;
+                }
+
+                .nav-links {
+                    display: none;
+                    position: absolute;
+                    top: 70px;
+                    left: 0;
+                    width: 100%;
+                    background-color: white;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 1rem 0;
+                    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+                }
+
+                .nav-links.active {
+                    display: flex;
+                }
+
+                .nav-links li {
+                    margin: 0.5rem 0;
+                }
+
+                .mobile-menu-btn {
+                    display: block;
+                }
+
+                .hero h1 {
+                    font-size: 2.2rem;
+                }
+
+                .hero p {
+                    font-size: 1.1rem;
+                }
+
+                .input-group {
+                    flex-direction: column;
+                }
+
+                .input-group input {
+                    border-radius: 10px;
+                    margin-bottom: 1rem;
+                    padding: 1rem;
+                }
+
+                .input-group button {
+                    border-radius: 10px;
+                    padding: 1rem;
+                    width: 100%;
+                }
+
+                .converter-card {
+                    padding: 1.5rem;
+                }
+
+                .download-options {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="header-container">
+                <a href="#" class="logo">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Videy</span>
+                </a>
+                <nav>
+                    <ul class="nav-links">
+                        <li>
+                            <a href="#">Home</a>
+                        </li>
+                        <li>
+                            <a href="#">How It Works</a>
+                        </li>
+                        <li>
+                            <a href="#">Features</a>
+                        </li>
+                        <li>
+                            <a href="#">FAQ</a>
+                        </li>
+                    </ul>
+                    <button class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </nav>
+            </div>
+        </header>
+        <div class="container">
+            <section class="hero">
+                <h1>Download Videos from Videy.co</h1>
+                <p>Paste your Videy.co link below to download or stream your video instantly.</p>
+            </section>
+            <section class="converter-card">
+                <div class="input-group">
+                    <input type="text" id="video-url" placeholder="Paste Videy.co link here... (e.g. https://videy.co/v/?id=3hn3NlJd1)" value="">
+                    <button id="convert-btn">Process Video</button>
+                </div>
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing your Videy.co link...</p>
+                </div>
+                <div class="result-container" id="result-container">
+                    <div class="video-preview">
+                        <div class="play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <video id="video-player" controls style="display: none;">
+                            <source src="" type="video/mp4"> Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <h2 style="margin-bottom: 1.5rem;">Download Options</h2>
+                    <div class="download-options">
+                        <div class="download-option">
+                            <h3>Original Quality</h3>
+                            <p>Download the video in its original quality and format</p>
+                            <button class="download-btn original-download">Download</button>
+                        </div>
+                        <div class="download-option">
+                            <h3>MP4 Format</h3>
+                            <p>Convert to standard MP4 format (compatible with all devices)</p>
+                            <button class="download-btn mp4-download">Download</button>
+                        </div>
+                        <div class="download-option">
+                            <h3>Audio Only (MP3)</h3>
+                            <p>Extract audio track as MP3 file</p>
+                            <button class="download-btn mp3-download">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Instant Processing</h3>
+                    <p>Get your Videy.co videos ready for download in seconds with our optimized processing system.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure Downloads</h3>
+                    <p>All downloads are encrypted and secure. We don't store your videos after processing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud-download-alt"></i>
+                    </div>
+                    <h3>Direct Access</h3>
+                    <p>Download your videos directly from Videy.co without any intermediaries or delays.</p>
+                </div>
+            </section>
+        </div>
+        <footer>
+            <div class="footer-container">
+                <p>© 2023 Videy.co. All rights reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem;">Videy is not affiliated with any third-party platforms.</p>
+            </div>
+        </footer>
+
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    </body>
+</html>
